@@ -1,11 +1,11 @@
-package com.project.githubapp
+package com.project.githubapp.viewmodel
 
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import com.project.githubapp.api.ApiConfig
 import com.project.githubapp.data.DatabaseFavorite
 import com.project.githubapp.data.Favorite
 import com.project.githubapp.data.FavoriteDao
@@ -22,7 +22,9 @@ class DetailUserViewModel(application: Application) : AndroidViewModel(applicati
         private const val TAG = "DetailUserViewModel"
     }
 
-    private val _detailUser = MutableLiveData<DetailsResponse>()
+    private val _isLoading = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean> = _isLoading
+    val detailUser = MutableLiveData<DetailsResponse>()
     private var userDao: FavoriteDao?
     private var userDb: DatabaseFavorite?
 
@@ -32,18 +34,21 @@ class DetailUserViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun setUserDetail(username: String) {
+        _isLoading.value = true
         ApiConfig.getApiService().detailUser(username)
             .enqueue(object : Callback<DetailsResponse> {
                 override fun onResponse(
                     call: Call<DetailsResponse>,
                     response: Response<DetailsResponse>
                 ) {
+                    _isLoading.value = (false)
                     if (response.isSuccessful) {
-                        _detailUser.postValue(response.body())
+                        detailUser.postValue(response.body())
                     }
                 }
 
                 override fun onFailure(call: Call<DetailsResponse>, t: Throwable) {
+                    _isLoading.value = (false)
                     Log.e(TAG, "failure :${t.message}")
                 }
 
@@ -51,12 +56,12 @@ class DetailUserViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun getUserDetail(): LiveData<DetailsResponse> {
-        return _detailUser
+        return detailUser
     }
 
-    fun addFavorite(username: String, id: Int, avatarUrl : String) {
+    fun addFavorite(username: String, id: Int, avatarUrl: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            val user = Favorite(
+            var user = Favorite(
                 username,
                 id,
                 avatarUrl

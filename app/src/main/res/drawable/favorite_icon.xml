@@ -3,8 +3,8 @@
 
     <item
         android:drawable="@drawable/ic_favorite_grey_24"
-        android:state_checked="true"/>
+        android:state_checked="false"/>
     <item
         android:drawable="@drawable/ic_favorite_red_24"
-        android:state_checked="false"/>
+        android:state_checked="true"/>
 </selector>

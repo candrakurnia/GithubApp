@@ -9,22 +9,12 @@ import com.project.githubapp.model.User
 
 class ListUserAdapter : RecyclerView.Adapter<ListUserAdapter.ViewHolder>() {
 
-    inner class ViewHolder(val binding: ItemRecycleViewBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(user: User) {
-            binding.apply {
-                Glide.with(itemView)
-                    .load(user.avatar_url)
-                    .circleCrop()
-                    .into(imgItemPhoto)
-                tvUsername.text = user.login
-
-            }
-        }
-
-    }
-
     private val list = ArrayList<User>()
+
+    private var onItemClickCallback: OnItemClickCallback? = null
+    fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
+        this.onItemClickCallback = onItemClickCallback
+    }
 
     fun setList(users: ArrayList<User>) {
         list.clear()
@@ -32,11 +22,25 @@ class ListUserAdapter : RecyclerView.Adapter<ListUserAdapter.ViewHolder>() {
         notifyDataSetChanged()
     }
 
-    private lateinit var onItemClickCallback: OnItemClickCallback
+    inner class ViewHolder(private val binding: ItemRecycleViewBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(user: User) {
+            binding.root.setOnClickListener {
+                onItemClickCallback?.onItemClicked(user)
+            }
+            binding.apply {
+                Glide.with(itemView)
+                    .load(user.avatar_url)
+                    .circleCrop()
+                    .into(imgItemPhoto)
+                tvUsername.text = user.login
+                tvId.text = user.id.toString()
 
-    fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
-        this.onItemClickCallback = onItemClickCallback
+            }
+        }
+
     }
+
 
     interface OnItemClickCallback {
         fun onItemClicked(data: User)
@@ -44,14 +48,11 @@ class ListUserAdapter : RecyclerView.Adapter<ListUserAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = ItemRecycleViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(view)
+        return ViewHolder((view))
     }
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
         viewHolder.bind(list[position])
-        viewHolder.itemView.setOnClickListener {
-            onItemClickCallback.onItemClicked(list[viewHolder.adapterPosition])
-        }
     }
 
     override fun getItemCount(): Int = list.size

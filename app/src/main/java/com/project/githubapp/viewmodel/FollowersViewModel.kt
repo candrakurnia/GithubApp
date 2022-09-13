@@ -1,9 +1,10 @@
-package com.project.githubapp
+package com.project.githubapp.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.project.githubapp.api.ApiConfig
 import com.project.githubapp.model.User
 import retrofit2.Call
 import retrofit2.Callback

@@ -2,6 +2,7 @@ package com.project.githubapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
@@ -9,6 +10,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.tabs.TabLayoutMediator
 import com.project.githubapp.adapter.SectionsPagerAdapter
 import com.project.githubapp.databinding.ActivityDetailBinding
+import com.project.githubapp.viewmodel.DetailUserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,6 +19,7 @@ import kotlinx.coroutines.withContext
 class DetailActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetailBinding
+    private lateinit var viewModel: DetailUserViewModel
 
 
     companion object {
@@ -26,8 +29,7 @@ class DetailActivity : AppCompatActivity() {
 
         @StringRes
         private val TAB_TITTLES = intArrayOf(
-            R.string.tab_text_1,
-            R.string.tab_text_2
+            R.string.tab_text_1, R.string.tab_text_2
         )
     }
 
@@ -36,20 +38,24 @@ class DetailActivity : AppCompatActivity() {
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val mainViewModel = ViewModelProvider(
+
+        val username = intent.getStringExtra(EXTRA_USER)
+        val aid = intent.getIntExtra(EXTRA_ID,0)
+        val avatarUrl = intent.getStringExtra(EXTRA_AVATAR)
+        val bundle = Bundle()
+        bundle.putString(EXTRA_USER, username)
+
+        viewModel = ViewModelProvider(
             this
         ).get(DetailUserViewModel::class.java)
 
-        val bundle = Bundle()
-        val username = intent.getStringExtra(EXTRA_USER)
-        val id = intent.getIntExtra(EXTRA_ID, 0)
-        val avatarUrl = intent.getStringExtra(EXTRA_AVATAR)
-        bundle.putString(EXTRA_USER, username)
-        if (username != null) {
-            mainViewModel.setUserDetail(username)
+        viewModel.loading.observe(this) {
+            showLoading(it)
         }
-        mainViewModel.getUserDetail().observe(this) {
+        viewModel.setUserDetail(username.toString())
+        viewModel.getUserDetail().observe(this) {
             if (it != null) {
+                showLoading(false)
                 binding.apply {
                     tvUsername.text = it.login
                     tvFullname.text = it.name
@@ -64,35 +70,31 @@ class DetailActivity : AppCompatActivity() {
             }
         }
 
-        var _isChecked = false
+        var isChecked = false
         CoroutineScope(Dispatchers.IO).launch {
-            val count = mainViewModel.checkUser(id)
+            val count = viewModel.checkUser(aid)
             withContext(Dispatchers.Main) {
                 if (count != null) {
                     if (count > 0) {
                         binding.toggleFav.isChecked = true
-                        _isChecked = true
+                        isChecked = true
                     } else {
                         binding.toggleFav.isChecked = false
-                        _isChecked = false
+                        isChecked = false
                     }
                 }
             }
         }
 
         binding.toggleFav.setOnClickListener {
-            _isChecked = ! _isChecked
-            if (_isChecked) {
-                if (username != null) {
-                    if (avatarUrl != null) {
-                        mainViewModel.addFavorite(username,id,avatarUrl)
-                    }
-                }
+            isChecked = ! isChecked
+            if (isChecked) {
+                viewModel.addFavorite(username.toString(),aid, avatarUrl.toString())
 
             } else {
-                mainViewModel.removeFavorite(id)
+                viewModel.removeFavorite(aid)
             }
-            binding.toggleFav.isChecked = _isChecked
+            binding.toggleFav.isChecked = isChecked
         }
 
         val sectionsPagerAdapter = SectionsPagerAdapter(this, bundle)
@@ -101,6 +103,11 @@ class DetailActivity : AppCompatActivity() {
         TabLayoutMediator(binding.tabs, binding.viewPager) { tab, position ->
             tab.text = resources.getString(TAB_TITTLES[position])
         }.attach()
+    }
+
+    private fun showLoading(b: Boolean) {
+        binding.progressBar.visibility = if (b) View.VISIBLE else View.GONE
+
     }
 
 }

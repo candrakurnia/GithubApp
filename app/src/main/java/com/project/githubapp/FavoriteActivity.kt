@@ -11,11 +11,13 @@ import com.project.githubapp.adapter.ListUserAdapter
 import com.project.githubapp.data.Favorite
 import com.project.githubapp.databinding.ActivityFavoriteBinding
 import com.project.githubapp.model.User
+import com.project.githubapp.viewmodel.FavoriteViewModel
 
 class FavoriteActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityFavoriteBinding
     private lateinit var adapter: ListUserAdapter
+    private lateinit var viewModel: FavoriteViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,26 +27,30 @@ class FavoriteActivity : AppCompatActivity() {
         adapter = ListUserAdapter()
         adapter.notifyDataSetChanged()
 
+        adapter.setOnItemClickCallback(object : ListUserAdapter.OnItemClickCallback{
+            override fun onItemClicked(data: User) {
+                Intent(this@FavoriteActivity, DetailActivity::class.java).also {
+                    it.putExtra(DetailActivity.EXTRA_USER, data.login)
+                    it.putExtra(DetailActivity.EXTRA_ID, data.id)
+                    it.putExtra(DetailActivity.EXTRA_AVATAR, data.avatar_url)
+                    startActivity(it)
+                }
+            }
 
-        val favoriteViewModel = ViewModelProvider(
+        })
+
+
+        viewModel = ViewModelProvider(
             this
         ).get(FavoriteViewModel::class.java)
-        favoriteViewModel.listUser.observe(this) {
-            setListUser()
-
-        }
 
         binding.apply {
             rvFavorite.setHasFixedSize(true)
-            val layoutManager = LinearLayoutManager(this@FavoriteActivity)
-            binding.rvFavorite.layoutManager = layoutManager
-            val itemDecoration =
-                DividerItemDecoration(this@FavoriteActivity, layoutManager.orientation)
-            binding.rvFavorite.addItemDecoration(itemDecoration)
+            rvFavorite.layoutManager = LinearLayoutManager(this@FavoriteActivity)
             rvFavorite.adapter = adapter
         }
 
-        favoriteViewModel.getFavorite()?.observe(this) {
+        viewModel.getFavorite()?.observe(this) {
             if (it != null) {
                 val list = listing(it)
                 adapter.setList(list)
@@ -59,51 +65,11 @@ class FavoriteActivity : AppCompatActivity() {
             val userMap = User(
                 user.login,
                 user.id,
-                user.avatar_url
+                user.avatar_url,
             )
             listUser.add(userMap)
         }
         return listUser
     }
 
-
-    private fun setListUser() {
-        val listUser = ListUserAdapter()
-        binding.rvFavorite.adapter = listUser
-        getUser(listUser)
-    }
-
-    private fun getUser(listUser: ListUserAdapter) {
-        listUser.setOnItemClickCallback(object : ListUserAdapter.OnItemClickCallback {
-            override fun onItemClicked(data: User) {
-                Toast.makeText(this@FavoriteActivity, "Berhasil", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this@FavoriteActivity, DetailActivity::class.java)
-                intent.putExtra(DetailActivity.EXTRA_USER, data.login)
-                intent.putExtra(DetailActivity.EXTRA_ID, data.id)
-                intent.putExtra(DetailActivity.EXTRA_ID, data.avatar_url)
-                startActivity(intent)
-            }
-
-        })
-    }
-
 }
-
-//        favoriteViewModel.getFavorite()?.observe(this) {
-//            setFavorite(it)
-//        }
-
-
-//    private fun setFavorite(it: List<Favorite>): ArrayList<List<ItemsItem>> {
-//        val fav = ArrayList<List<ItemsItem>>()
-//        for (user in it) {
-//            val userMapped = ItemsItem {
-//                user.login,
-//                user.avatar_url,
-//                user.id
-//
-//            }
-//            fav.add(userMapped)
-//        }
-//        return fav
-//    }

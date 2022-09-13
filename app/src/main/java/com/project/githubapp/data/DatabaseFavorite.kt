@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
 )
 abstract class DatabaseFavorite : RoomDatabase() {
     companion object {
-        var INSTANCE : DatabaseFavorite? = null
+        var INSTANCE  : DatabaseFavorite? = null
 
         fun getDatabase(context: Context): DatabaseFavorite? {
             if (INSTANCE == null) {

@@ -1,9 +1,10 @@
-package com.project.githubapp
+package com.project.githubapp.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.project.githubapp.api.ApiConfig
 import com.project.githubapp.model.User
 import com.project.githubapp.model.UserResponse
 import retrofit2.Call
@@ -13,8 +14,8 @@ import retrofit2.Response
 class MainViewModel : ViewModel() {
 
 
-    private val _listUser = MutableLiveData<List<User>>()
-    val listUser: LiveData<List<User>> = _listUser
+    private val _listUser = MutableLiveData<ArrayList<User>>()
+    val listUser: LiveData<ArrayList<User>> = _listUser
 
 
     private val _isLoading = MutableLiveData<Boolean>()
@@ -37,7 +38,6 @@ class MainViewModel : ViewModel() {
                 _isLoading.value = (false)
                 if (response.isSuccessful) {
                     _listUser.value = response.body()?.items
-                    Log.d(TAG,"MASUK KOK")
                 } else {
                     Log.e(TAG, "onFailure : ${response.message()}")
                 }
@@ -49,5 +49,9 @@ class MainViewModel : ViewModel() {
             }
 
         })
+    }
+
+    fun getSearch() : LiveData<ArrayList<User>> {
+        return listUser
     }
 }

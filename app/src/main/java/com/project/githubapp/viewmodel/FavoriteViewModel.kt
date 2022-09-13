@@ -1,4 +1,4 @@
-package com.project.githubapp
+package com.project.githubapp.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
